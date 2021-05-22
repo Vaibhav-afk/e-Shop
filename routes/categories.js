@@ -48,7 +48,29 @@ router.post("/", async (req, res) => {
   res.send(category);
 });
 
-router.delete("/:categoryId", async (req, res) => {
+router.put("/:categoryId", async (req, res) => {
+  let id = req.params.categoryId;
+  const category = await Category.findByIdAndUpdate(
+    id,
+    {
+      name: req.body.name,
+      icon: req.body.icon,
+      color: req.body.color,
+    },
+    {
+      new: true, // this parameter to get new data of category otherwise res.send(category) will give old json data of category
+    }
+  );
+  if(!category){
+    res.status(404).json({
+      success: false,
+      message: `failed to update!`
+    });
+  }
+  res.send(category);
+})
+
+router.delete("/:categoryId",(req, res) => {
   let id = req.params.categoryId;
   Category.findByIdAndRemove(id)
     .then((category) => {
