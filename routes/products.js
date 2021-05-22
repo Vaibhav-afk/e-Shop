@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const {Product} = require("../models/product");
+const { Product } = require("../models/product");
 
 //we can use async method and await keyword for error handling apart from promises(i.e then, catch,etc)
 router.get(`/`, async (req, res) => {
@@ -15,12 +15,12 @@ router.get(`/`, async (req, res) => {
 });
 
 router.post(`/`, (req, res) => {
-  const newProduct = new Product({
+  const product = new Product({
     name: req.body.name,
     image: req.body.image,
     quantity: req.body.quantity,
   });
-  newProduct
+  product
     .save()
     .then((createdProduct) => {
       res.status(201).json(createdProduct);
