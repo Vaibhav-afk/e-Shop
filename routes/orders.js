@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const { Order } = require("../models/order");
 
-//we can use async method and await keyword for error handling apart from promises(i.e then, catch,etc)
+//promises(error handling) can be made in both ways by using {then, catch,etc} or using async methods and await keyword
 router.get(`/`, async (req, res) => {
   const orderList = await Order.find();
   if (!orderList) {
