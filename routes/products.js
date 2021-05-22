@@ -5,7 +5,11 @@ const { Category } = require("../models/category");
 
 //promises(error handling) can be made in both ways by using {then, catch,etc} or using async methods and await keyword
 router.get(`/`, async (req, res) => {
-  const productList = await Product.find().select("name image -_id"); //select method helps us to display specific things like here we are displaying name and image without _id
+  const productList = await Product.find().populate('category');
+  
+  /*
+  Product.find().select("name image -_id"); select method helps us to display specific things like here we are displaying name and image without _id
+  */
 
   if (!productList) {
     res.status(500).json({
@@ -17,7 +21,7 @@ router.get(`/`, async (req, res) => {
 
 router.get(`/:productId`, async (req, res) => {
   const id = req.params.productId;
-  const product = await Product.findById(id);
+  const product = await Product.findById(id).populate('category'); //
 
   if (!product) {
     res.status(404).json({
