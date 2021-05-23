@@ -38,6 +38,9 @@ mongoose
     console.log(err);
   });
 
+//To remove deprecation warning fpr mongoose findAndModify method
+mongoose.set("useFindAndModify", false);
+
 //server
 app.listen(3000, () => {
   console.log("Server started successfully! at http://localhost:3000");

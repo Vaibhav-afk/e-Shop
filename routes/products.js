@@ -5,8 +5,8 @@ const { Category } = require("../models/category");
 
 //promises(error handling) can be made in both ways by using {then, catch,etc} or using async methods and await keyword
 router.get(`/`, async (req, res) => {
-  const productList = await Product.find().populate('category');
-  
+  const productList = await Product.find().populate("category");
+
   /*
   Product.find().select("name image -_id"); select method helps us to display specific things like here we are displaying name and image without _id
   */
@@ -21,7 +21,7 @@ router.get(`/`, async (req, res) => {
 
 router.get(`/:productId`, async (req, res) => {
   const id = req.params.productId;
-  const product = await Product.findById(id).populate('category'); //
+  const product = await Product.findById(id).populate("category"); //
 
   if (!product) {
     res.status(404).json({
@@ -55,6 +55,40 @@ router.post(`/`, async (req, res) => {
     res.status(404).json({
       success: false,
       message: `failed to add product`,
+    });
+  }
+  res.send(product);
+});
+
+router.put("/:productId", async (req, res) => {
+  const category = await Category.findById(req.body.category);
+  if (!category) {
+    res.status(404).send(`Invalid Category!`);
+  }
+  let id = req.params.productId;
+  const product = await Product.findByIdAndUpdate(
+    id,
+    {
+      name: req.body.name,
+      description: req.body.description,
+      richDescription: req.body.richDescription,
+      image: req.body.image,
+      brand: req.body.brand,
+      price: req.body.price,
+      category: req.body.category,
+      quantity: req.body.quantity,
+      rating: req.body.rating,
+      numReviews: req.body.numReviews,
+      isFeatured: req.body.isFeatured,
+    },
+    {
+      new: true, // this parameter to get new data of category otherwise res.send(category) will give old json data of category
+    }
+  );
+  if (!product) {
+    res.status(404).json({
+      success: false,
+      message: `failed to update!`,
     });
   }
   res.send(product);
