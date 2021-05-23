@@ -139,9 +139,19 @@ router.delete("/:productId", async (req, res) => {
     });
 });
 
-router.get('/get/count',async (req, res) => {
+router.get("/get/count", async (req, res) => {
   const productCount = await Product.countDocuments((count) => count);
-  (productCount)?res.send({ productCount: productCount}):res.status(500).json({success: false,});
-})
+  productCount
+    ? res.send({ productCount: productCount })
+    : res.status(500).json({ success: false });
+});
+
+router.get("/get/featured/:count", async (req, res) => {
+  const count = req.params.count ? req.params.count : 0;
+  const products = await Product.find({ isFeatured: true }).limit(+count);
+  //+count converts string to int we can also pass parameter parseInt(count) to limit method
+
+  products ? res.send(products) : res.status(500).json({ success: false });
+});
 
 module.exports = router;
