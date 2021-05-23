@@ -20,16 +20,24 @@ router.get(`/`, async (req, res) => {
 });
 
 router.get(`/:productId`, async (req, res) => {
-  const id = req.params.productId;
-  const product = await Product.findById(id).populate("category"); //
-
-  if (!product) {
-    res.status(404).json({
-      success: false,
-      message: `product not found, check the id`,
+  Product.findById(req.params.productId)
+    .populate("category")
+    .then((product) => {
+      if (product) {
+        res.status(201).send(product);
+      } else {
+        res.status(404).json({
+          success: false,
+          message: `product not found, please check the id`,
+        });
+      }
+    })
+    .catch((err) => {
+      res.status(500).json({
+        success: false,
+        error: err,
+      });
     });
-  }
-  res.send(product);
 });
 
 router.post(`/`, async (req, res) => {
@@ -61,12 +69,13 @@ router.post(`/`, async (req, res) => {
 });
 
 router.put("/:productId", async (req, res) => {
+  //validate category
   const category = await Category.findById(req.body.category);
   if (!category) {
     res.status(404).send(`Invalid Category!`);
   }
   let id = req.params.productId;
-  const product = await Product.findByIdAndUpdate(
+  Product.findByIdAndUpdate(
     id,
     {
       name: req.body.name,
@@ -84,14 +93,50 @@ router.put("/:productId", async (req, res) => {
     {
       new: true, // this parameter to get new data of category otherwise res.send(category) will give old json data of category
     }
-  );
-  if (!product) {
-    res.status(404).json({
-      success: false,
-      message: `failed to update!`,
+  )
+    .then((product) => {
+      if (product) {
+        res.status(201).json({
+          message: `updated successfully!`,
+          product: product,
+        });
+      } else {
+        res.status(404).json({
+          success: false,
+          message: `failed to update!`,
+        });
+      }
+    })
+    .catch((err) => {
+      res.status(500).json({
+        success: false,
+        error: err,
+      });
     });
-  }
-  res.send(product);
+});
+
+router.delete("/:productId", async (req, res) => {
+  let id = req.params.productId;
+  Product.findByIdAndRemove(id)
+    .then((product) => {
+      if (product) {
+        return res.status(201).json({
+          success: true,
+          message: "product deleted successfully!",
+        });
+      } else {
+        return res.status(404).json({
+          success: false,
+          message: "product not found, please check the id",
+        });
+      }
+    })
+    .catch((err) => {
+      return res.status(500).json({
+        success: false,
+        error: err,
+      });
+    });
 });
 
 module.exports = router;
