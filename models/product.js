@@ -59,5 +59,15 @@ const productSchema = new mongoose.Schema({
   },
 });
 
+//We can create virtual "id" which has same value as of "_id"
+
+productSchema.virtual("id").get(function() {
+  return this._id.toHexString();
+});
+
+productSchema.set("toJSON", {
+  virtuals: true,
+});
+
 //with model class we construct documents with properties declared in Schema.
 exports.Product = mongoose.model("Product", productSchema);
