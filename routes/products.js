@@ -5,7 +5,14 @@ const { Category } = require("../models/category");
 
 //promises(error handling) can be made in both ways by using {then, catch,etc} or using async methods and await keyword
 router.get(`/`, async (req, res) => {
-  const productList = await Product.find().populate("category");
+  // there are three methods by which we can pass req to backend, first - by body, by normal URL params and by query params(start usually with '?')
+
+  let filter = {};
+  if (req.query.categories) {
+    filter = { category: req.query.categories.split(",") };
+  }
+
+  const productList = await Product.find(filter).populate("category");
 
   /*
   Product.find().select("name image -_id"); select method helps us to display specific things like here we are displaying name and image without _id
