@@ -4,6 +4,8 @@ const app = express();
 const mongoose = require("mongoose");
 const cors = require("cors");
 require("dotenv/config");
+const authJwt = require("./helper/jwt");
+const errorHandler = require('./helper/error-handler');
 
 app.use(cors());
 app.options("*", cors());
@@ -11,6 +13,8 @@ app.options("*", cors());
 //middleware
 app.use(express.json()); //It helps our backend to understand json
 app.use(morgan("tiny"));
+app.use(authJwt());
+app.use(errorHandler);
 
 //Routes
 const productsRoutes = require("./routes/products");

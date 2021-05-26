@@ -6,7 +6,7 @@ const jwt = require("jsonwebtoken");
 
 //promises(error handling) can be made in both ways by using {then, catch,etc} or using async methods and await keyword
 router.get(`/`, async (req, res) => {
-  const userList = await User.find().select('-passwordHash');
+  const userList = await User.find().select("-passwordHash");
   if (!userList) {
     res.status(500).json({
       success: false,
@@ -16,10 +16,10 @@ router.get(`/`, async (req, res) => {
 });
 
 router.get(`/:userId`, async (req, res) => {
-  const user = await User.findById(req.params.userId).select('-passwordHash');
+  const user = await User.findById(req.params.userId).select("-passwordHash");
   if (!user) {
     res.status(500).json({
-      message: `No such user exist, please check id!`
+      message: `No such user exist, please check id!`,
     });
   }
   res.send(user);
@@ -45,26 +45,27 @@ router.post("/", async (req, res) => {
   res.send(user);
 });
 
-router.post('/login', async(req,res) => {
-  const secret = process.env.secretKey;
-  const user = await User.findOne({ email: req.body.email});
-  if(!user){
-    return res.status(404).send('no such user found.');
+router.post("/login", async (req, res) => {
+  const secret = process.env.secret;
+  const user = await User.findOne({ email: req.body.email });
+  if (!user) {
+    return res.status(404).send("no such user found.");
   }
-  if(user && bcrypt.compareSync(req.body.password, user.passwordHash)){
+  console.log(user.passwordHash);
+  if (user && bcrypt.compareSync(req.body.password, user.passwordHash)) {
     const token = jwt.sign(
       {
         userId: user.id,
       },
       secret,
       {
-        expiresIn: '2h'
+        expiresIn: "3h",
       }
     );
-    res.status(200).send({user: user.email, token: token});
-  }else{
-    res.status(400).send('Invalid password');
+    res.status(200).send({ user: user.email, token: token });
+  } else {
+    res.status(400).send("Invalid password");
   }
-})
+});
 
 module.exports = router;
