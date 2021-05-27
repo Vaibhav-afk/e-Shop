@@ -25,6 +25,7 @@ router.get(`/:userId`, async (req, res) => {
   res.send(user);
 });
 
+//Admin can register or signup using this route
 router.post("/", async (req, res) => {
   let user = new User({
     name: req.body.name,
@@ -40,30 +41,31 @@ router.post("/", async (req, res) => {
   });
   user = await user.save();
   if (!user) {
-    return res.status(404).send(`the user cannot be created`);
+    return res.status(404).send(`the user cannot be created!`);
   }
   res.send(user);
 });
 
- router.post('/register',async(req, res) =>{
-   let user = new User({
-     name: req.body.name,
-     email: req.body.email,
-     passwordHash: bcrypt.hash(req.body.password,10),
-     phone: req.body.phone,
-     isAdmin: req.body.isAdmin,
-     street: req.body.street,
-     apartment: req.body.apartment,
-     zip: req.body.zip,
-     city: req.body.city,
-     country: req.body.country,
-   })
-   user = await user.save();
-   if(!user){
-     return res.status(400).send(`The user cannot be created!`);
-     res.send(user);
-   }
- })
+//This is for non admin users for signup
+router.post("/register", async (req, res) => {
+  let user = new User({
+    name: req.body.name,
+    email: req.body.email,
+    passwordHash: bcrypt.hashSync(req.body.password, 10),
+    street: req.body.street,
+    apartment: req.body.apartment,
+    city: req.body.city,
+    zip: req.body.zip,
+    country: req.body.country,
+    phone: req.body.phone,
+    isAdmin: req.body.isAdmin,
+  });
+  user = await user.save();
+  if (!user) {
+    return res.status(404).send(`the user cannot be created!`);
+  }
+  res.send(user);
+});
 
 router.post("/login", async (req, res) => {
   const secret = process.env.secret;
@@ -71,21 +73,51 @@ router.post("/login", async (req, res) => {
   if (!user) {
     return res.status(404).send("no such user found.");
   }
-  console.log(user.passwordHash);
   if (user && bcrypt.compareSync(req.body.password, user.passwordHash)) {
     const token = jwt.sign(
       {
         userId: user.id,
+        isAdmin: user.isAdmin
       },
       secret,
       {
-        expiresIn: "3h",
+        expiresIn: "1d",
       }
     );
     res.status(200).send({ user: user.email, token: token });
   } else {
     res.status(400).send("Invalid password");
   }
+});
+
+router.delete("/:userId", async (req, res) => {
+  let id = req.params.userId;
+  User.findByIdAndRemove(id)
+    .then((user) => {
+      if (user) {
+        return res.status(201).json({
+          success: true,
+          message: "user deleted successfully!",
+        });
+      } else {
+        return res.status(404).json({
+          success: false,
+          message: "user not found, please check the id",
+        });
+      }
+    })
+    .catch((err) => {
+      return res.status(500).json({
+        success: false,
+        error: err,
+      });
+    });
+});
+
+router.get("/get/count", async (req, res) => {
+  const userCount = await User.countDocuments((count) => count)
+
+  userCount ? res.send({userCount: userCount}) : res.status(500).json({ success: false });
 });
 
 module.exports = router;
