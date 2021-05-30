@@ -15,24 +15,26 @@ router.get(`/`, async (req, res) => {
 
 router.get(`/:categoryId`, async (req, res) => {
   let id = req.params.categoryId;
-  Category.findById(id).then((category) => {
-    if(!category){
-      res.status(404).json({
-        success: false,
-        message:`category not found, please check the id`,
-      })
-    }else{
-      res.status(201).json({
+  Category.findById(id)
+    .then((category) => {
+      if (!category) {
+        res.status(404).json({
+          success: false,
+          message: `category not found, please check the id`,
+        });
+      } else {
+        res.status(201).json({
+          success: true,
+          category: category,
+        });
+      }
+    })
+    .catch((err) => {
+      res.status(500).json({
         success: true,
-        category:category,
+        error: err,
       });
-    }
-  }).catch(err =>{
-    res.status(500).json({
-      success: true,
-      error:err,
     });
-  });
 });
 
 router.post("/", async (req, res) => {
@@ -61,16 +63,16 @@ router.put("/:categoryId", async (req, res) => {
       new: true, // this parameter to get new data of category otherwise res.send(category) will give old json data of category
     }
   );
-  if(!category){
+  if (!category) {
     res.status(404).json({
       success: false,
-      message: `failed to update!`
+      message: `failed to update!`,
     });
   }
   res.send(category);
-})
+});
 
-router.delete("/:categoryId",(req, res) => {
+router.delete("/:categoryId", (req, res) => {
   let id = req.params.categoryId;
   Category.findByIdAndRemove(id)
     .then((category) => {

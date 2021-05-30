@@ -77,7 +77,7 @@ router.post("/login", async (req, res) => {
     const token = jwt.sign(
       {
         userId: user.id,
-        isAdmin: user.isAdmin
+        isAdmin: user.isAdmin,
       },
       secret,
       {
@@ -115,9 +115,11 @@ router.delete("/:userId", async (req, res) => {
 });
 
 router.get("/get/count", async (req, res) => {
-  const userCount = await User.countDocuments((count) => count)
+  const userCount = await User.countDocuments((count) => count);
 
-  userCount ? res.send({userCount: userCount}) : res.status(500).json({ success: false });
+  userCount
+    ? res.send({ userCount: userCount })
+    : res.status(500).json({ success: false });
 });
 
 module.exports = router;

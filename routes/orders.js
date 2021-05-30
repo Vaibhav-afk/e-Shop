@@ -63,4 +63,51 @@ router.post("/", async (req, res) => {
   res.send(order);
 });
 
+router.put("/:orderId", async (req, res) => {
+  let id = req.params.orderId;
+  const order = await Order.findByIdAndUpdate(
+    id,
+    {
+      status: req.body.status,
+    },
+    {
+      new: true, // this parameter to get new data of order otherwise res.send(order) will give old json data of order
+    }
+  );
+  if (!order) {
+    res.status(404).json({
+      success: false,
+      message: `failed to update!`,
+    });
+  }
+  res.send(order);
+});
+
+router.delete("/:orderId", (req, res) => {
+  let id = req.params.orderId;
+  Order.findByIdAndRemove(id)
+    .then(async (order) => {
+      if (order) {
+        await order.orderItem.map(async (orderItem) => {
+          await OrderItem.findByIdAndRemove(orderItem);
+        });
+        return res.status(201).json({
+          success: true,
+          message: "order deleted successfully!",
+        });
+      } else {
+        return res.status(404).json({
+          success: false,
+          message: "order not found, please check the id",
+        });
+      }
+    })
+    .catch((err) => {
+      return res.status(500).json({
+        success: false,
+        error: err,
+      });
+    });
+});
+
 module.exports = router;

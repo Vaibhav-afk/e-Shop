@@ -61,7 +61,7 @@ const productSchema = new mongoose.Schema({
 
 //We can create virtual "id" which has same value as of "_id"
 
-productSchema.virtual("id").get(function() {
+productSchema.virtual("id").get(function () {
   return this._id.toHexString();
 });
 
