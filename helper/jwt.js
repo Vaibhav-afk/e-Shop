@@ -16,6 +16,10 @@ function authJwt() {
         methods: ["GET", "OPTIONS"],
       },
       {
+        url: /\/public\/uploads(.*)/,
+        methods: ["GET", "OPTIONS"],
+      },
+      {
         url: /\/api\/v1\/categories(.*)/,
         methods: ["GET", "OPTIONS"],
       },

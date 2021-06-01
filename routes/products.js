@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const { Product } = require("../models/product");
 const { Category } = require("../models/category");
+const mongoose = require("mongoose");
 const multer = require("multer");
 
 const FILE_TYPE_MAP = {
@@ -14,19 +15,22 @@ const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     const isValid = FILE_TYPE_MAP[file.mimetype];
     let uploadError = new Error("invalid image type");
+
     if (isValid) {
       uploadError = null;
     }
     cb(uploadError, "public/uploads");
   },
   filename: function (req, file, cb) {
-    const fileName = file.originalname.split(" ").join("");
+    
+    const fileName = file.originalname.split(" ").join("-");
+    console.log(fileName);
     const extension = FILE_TYPE_MAP[file.mimetype];
-    cb(null, `${fileName} - ${Date.now()}.${extension}`);
+    cb(null, `${fileName}-${Date.now()}.${extension}`);
   },
 });
 
-var uploadOptions = multer({ storage: storage });
+const uploadOptions = multer({ storage: storage });
 
 //promises(error handling) can be made in both ways by using {then, catch,etc} or using async methods and await keyword
 router.get(`/`, async (req, res) => {
@@ -87,7 +91,7 @@ router.post(`/`, uploadOptions.single("image"), async (req, res) => {
     name: req.body.name,
     description: req.body.description,
     richDescription: req.body.richDescription,
-    image: `${basePath}${fileName}`,
+    image: `${basePath}${fileName}`, // "http://localhost:3000/public/upload/image-2323232"
     brand: req.body.brand,
     price: req.body.price,
     category: req.body.category,
@@ -191,5 +195,50 @@ router.get("/get/featured/:count", async (req, res) => {
 
   products ? res.send(products) : res.status(500).json({ success: false });
 });
+
+router.put(
+  "/gallery-images/:id",
+  uploadOptions.array("images", 12),
+  async (req, res) => {
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(404).send(`Invalid Product Id`);
+    }
+    const files = req.files;
+    let imagesPaths = [];
+    const basePath = `${req.protocol}://${req.get("host")}/public/uploads/`;
+
+    if (files) {
+      files.map((file) => {
+        imagesPaths.push(`${basePath}${file.fileName}`);
+      });
+    }
+    
+    Product.findByIdAndUpdate(
+      req.params.id,
+      {
+        images: imagesPaths,
+      },
+      {
+        new: true, // this parameter to get new data of product otherwise res.send(product) will give old json data of product
+      }
+    )
+      .then((product) => {
+        if (product) {
+          res.send(product);
+        } else {
+          res.status(404).json({
+            success: false,
+            message: `gallery cannot be updated!`,
+          });
+        }
+      })
+      .catch((err) => {
+        res.status(500).json({
+          success: false,
+          error: err,
+        });
+      });
+  }
+);
 
 module.exports = router;
