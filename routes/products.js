@@ -2,6 +2,31 @@ const express = require("express");
 const router = express.Router();
 const { Product } = require("../models/product");
 const { Category } = require("../models/category");
+const multer = require("multer");
+
+const FILE_TYPE_MAP = {
+  "image/png": "png",
+  "image/jpeg": "jpeg",
+  "image/jpg": "jpg",
+};
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const isValid = FILE_TYPE_MAP[file.mimetype];
+    let uploadError = new Error("invalid image type");
+    if (isValid) {
+      uploadError = null;
+    }
+    cb(uploadError, "public/uploads");
+  },
+  filename: function (req, file, cb) {
+    const fileName = file.originalname.split(" ").join("");
+    const extension = FILE_TYPE_MAP[file.mimetype];
+    cb(null, `${fileName} - ${Date.now()}.${extension}`);
+  },
+});
+
+var uploadOptions = multer({ storage: storage });
 
 //promises(error handling) can be made in both ways by using {then, catch,etc} or using async methods and await keyword
 router.get(`/`, async (req, res) => {
@@ -47,16 +72,22 @@ router.get(`/:productId`, async (req, res) => {
     });
 });
 
-router.post(`/`, async (req, res) => {
+router.post(`/`, uploadOptions.single("image"), async (req, res) => {
   const category = await Category.findById(req.body.category);
   if (!category) {
     return res.status(404).send(`invalid Category`);
   }
+  const file = req.file;
+  if (!file) {
+    return res.status(404).send(`No image in request`);
+  }
+  const fileName = req.file.fileName;
+  const basePath = `${req.protocol}://${req.get("host")}/public/uploads/`;
   const product = new Product({
     name: req.body.name,
     description: req.body.description,
     richDescription: req.body.richDescription,
-    image: req.body.image,
+    image: `${basePath}${fileName}`,
     brand: req.body.brand,
     price: req.body.price,
     category: req.body.category,
